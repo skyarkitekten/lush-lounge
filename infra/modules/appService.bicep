@@ -1,17 +1,11 @@
-param appName string
-param location string
+param name string
+param location string = resourceGroup().location
 param sku string = 'F1'
 
-resource appService 'Microsoft.Web/sites@2021-02-01' = {
-  name: appName
-  location: location
-  properties: {
-    serverFarmId: appServicePlan.id
-  }
-}
+var resourceToken = toLower(uniqueString(name, location))
 
 resource appServicePlan 'Microsoft.Web/serverfarms@2021-02-01' = {
-  name: '${appName}-plan'
+  name: '${name}-plan'
   location: location
   sku: {
     name: sku
@@ -22,4 +16,13 @@ resource appServicePlan 'Microsoft.Web/serverfarms@2021-02-01' = {
   }
 }
 
+resource appService 'Microsoft.Web/sites@2021-02-01' = {
+  name: '${name}-${resourceToken}'
+  location: location
+  properties: {
+    serverFarmId: appServicePlan.id
+  }
+}
+
+output appServiceName string = appService.name
 output appServiceUrl string = appService.properties.defaultHostName
